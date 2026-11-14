@@ -1,0 +1,37 @@
+dpush() {
+  # Check if file /tmp/dstack exists (if not, create it)
+  if [ ! -f /tmp/dstack ]; then
+    touch /tmp/dstack
+  fi
+
+  # Append user's current director to the stack file
+  pwd >> /tmp/dstack
+}
+
+dpop() {
+  # Check if file /tmp/dstack exists (if not, exit with RC of 2)
+  if [ ! -f /tmp/dstack ]; then
+    echo "ERROR: Stack file does not exist."
+    return 2
+  fi
+
+  # Check if the stack is empty (0 lines) (exit with RC of 1)
+  local line_count
+  line_count=$(wc -l < /tmp/dstack)
+  if [ "$line_count" -eq 0 ]; then
+    echo "ERROR: Stack file is empty."
+    return 1
+  fi
+
+  # Retrieve the top element in the stack (last line)
+  local prev_dir
+  prev_dir=$(tail -n 1 /tmp/dstack)
+
+  # Remove the last line of the file using a temporary variable
+  local new_content
+  new_content=$(head -n -1 /tmp/dstack)
+  echo "$new_content" > /tmp/dstack
+
+  # Move to the most recent directory
+  cd "$prev_dir"
+}
